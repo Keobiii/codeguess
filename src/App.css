@@ -1,0 +1,103 @@
+.container {
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+header h1 {
+  font-size: 36px;
+  margin-bottom: 5px;
+}
+
+header p {
+  color: #777;
+}
+
+.hint-card {
+  background: #f3f4f6;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.hint-card h2 {
+  margin-top: 0;
+}
+
+.hint-card p {
+  line-height: 1.7;
+  color: #555;
+}
+
+form {
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 13px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  min-width: 0;
+}
+
+button {
+  padding: 13px 20px;
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.guesses {
+  margin-top: 35px;
+}
+
+.guesses ul {
+  list-style: none;
+  padding: 0;
+}
+
+.guesses li {
+  background: #f3f4f6;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.guesses li.correct {
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: bold;
+}
+
+.guesses li span {
+  float: right;
+}
+
+.empty {
+  color: #999;
+}
+
+.success-message {
+  margin-top: 20px;
+  padding: 15px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}
