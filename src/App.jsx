@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { codeQuestions } from "./data/codes";
 
 function App() {
-  const [currentQuestion] = useState(
+  const [currentQuestion, setCurrentQuestion] = useState(
     codeQuestions[Math.floor(Math.random() * codeQuestions.length)],
   );
 
@@ -10,26 +10,28 @@ function App() {
   const [guesses, setGuesses] = useState([]);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsedMilliseconds, setElapsedMilliseconds] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
 
   useEffect(() => {
     if (!timerStarted || isCorrect) return;
 
     const interval = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
+      setElapsedMilliseconds((prev) => prev + 10);
+    }, 10);
 
     return () => clearInterval(interval);
   }, [timerStarted, isCorrect]);
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+  const formatTime = (milliseconds) => {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    const remainingMilliseconds = milliseconds % 1000;
 
-    return `${String(minutes).padStart(2, "0")}:${String(
-      remainingSeconds,
-    ).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0",
+    )}.${String(remainingMilliseconds).padStart(3, "0")}`;
   };
 
   const handleSubmit = (e) => {
@@ -39,14 +41,14 @@ function App() {
 
     if (!answer || isCorrect) return;
 
-    const correct =
-      answer.toLowerCase() === currentQuestion.answer.toLowerCase();
+    const correct = answer === currentQuestion.answer;
 
     setGuesses((prev) => [
       ...prev,
       {
         answer,
         correct,
+        time: elapsedMilliseconds,
       },
     ]);
 
@@ -57,21 +59,33 @@ function App() {
     setGuess("");
   };
 
+  const handleOneMore = () => {
+    const newQuestion =
+      codeQuestions[Math.floor(Math.random() * codeQuestions.length)];
+
+    setCurrentQuestion(newQuestion);
+    setGuess("");
+    setGuesses([]);
+    setIsCorrect(false);
+    setElapsedMilliseconds(0);
+    setTimerStarted(false);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
-      <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
-        {/* Header */}
-        <header className="mb-10">
-          <h1 className="text-2xl font-bold tracking-tight">CodeGuess</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Test your programming knowledge, one challenge at a time.
-          </p>
-        </header>
-
+      {/* Header */}
+      <header className="fixed top-0 left-0 z-50 w-full border-b border-white/10 bg-black px-6 py-4">
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-xl font-bold tracking-tight text-white">
+            Code<span className="text-gray-500">Guess</span>
+          </h1>
+        </div>
+      </header>
+      <main className="mx-auto max-w-5xl px-6 pt-24 pb-10 md:pt-28">
         {/* Game Layout */}
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-[1fr_260px]">
+        <div className="flex flex-col gap-10 md:flex-row">
           {/* Main Challenge */}
-          <section>
+          <section className="min-w-0 flex-1">
             {/* Question */}
             <div className="mb-6">
               <p className="mb-3 text-xs font-medium uppercase tracking-widest text-gray-500">
@@ -134,31 +148,47 @@ function App() {
                 <button
                   type="submit"
                   disabled={isCorrect || !guess.trim()}
-                  className="mr-2 rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mr-2 rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-black cursor-pointer transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Submit ↵
                 </button>
               </div>
             </form>
 
-            {/* Success Message */}
+            {/* Success Modal */}
             {isCorrect && (
-              <div className="mt-5 flex items-center gap-3 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-4">
-                <span className="text-green-400">✓</span>
-                <div>
-                  <p className="text-sm font-medium text-green-400">
-                    Correct answer!
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    You found the missing code in {formatTime(elapsedSeconds)}.
-                  </p>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+                <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#101010] p-6 shadow-2xl">
+                  <div className="mb-5 text-center">
+                    <div className="mb-3 text-3xl text-green-400 font-semibold">{currentQuestion.answer}</div>
+
+                    <h2 className="text-lg font-semibold text-white">
+                      Correct answer!
+                    </h2>
+
+                    <p className="mt-2 text-sm text-gray-500">
+                      You found the missing code in
+                    </p>
+
+                    <p className="mt-2 font-mono text-2xl font-semibold text-white">
+                      {formatTime(elapsedMilliseconds)}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleOneMore}
+                    className="w-full rounded-lg bg-white px-4 py-3 text-xs font-semibold text-black transition hover:bg-gray-200 cursor-pointer"
+                  >
+                    One More
+                  </button>
                 </div>
               </div>
             )}
           </section>
 
           {/* Sidebar */}
-          <aside className="space-y-5 md:sticky md:top-8 md:self-start md:pt-[85px]">
+          <aside className="w-full space-y-5 md:sticky md:top-8 md:w-[260px] md:shrink-0 md:self-start md:pt-[85px]">
             {/* Stopwatch */}
             <div className="rounded-xl border border-white/10 bg-[#101010] p-5">
               <div className="mb-5 flex items-center justify-between">
@@ -180,7 +210,7 @@ function App() {
               <div className="flex items-center gap-3">
                 <span className="text-gray-500">◷</span>
                 <span className="font-mono text-3xl font-semibold tracking-tight tabular-nums">
-                  {formatTime(elapsedSeconds)}
+                  {formatTime(elapsedMilliseconds)}
                 </span>
               </div>
 
@@ -208,7 +238,7 @@ function App() {
                   <p className="text-xs text-gray-600">No attempts yet.</p>
                 </div>
               ) : (
-                <div className="max-h-80 divide-y divide-white/5 overflow-y-auto">
+                <div className="max-h-80 divide-y divide-white/5 overflow-y-auto scrollbar-hide">
                   {guesses
                     .slice()
                     .reverse()
@@ -238,7 +268,7 @@ function App() {
                             item.correct ? "text-green-400" : "text-gray-600"
                           }`}
                         >
-                          {item.correct ? "✓" : "×"}
+                          {formatTime(item.time)}
                         </span>
                       </div>
                     ))}
