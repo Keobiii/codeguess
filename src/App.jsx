@@ -13,6 +13,17 @@ function App() {
   const [elapsedMilliseconds, setElapsedMilliseconds] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
 
+  // local storage for elapsed time
+  const [statistics, setStatistics] = useState([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("answerStatistics");
+
+    if (stored) {
+      setStatistics(JSON.parse(stored));
+    }
+  }, []);
+
   useEffect(() => {
     if (!timerStarted || isCorrect) return;
 
@@ -54,6 +65,22 @@ function App() {
 
     if (correct) {
       setIsCorrect(true);
+
+      // save to local storage
+      const newStatistics = {
+        answer,
+        time: elapsedMilliseconds,
+      };
+
+      setStatistics((prev) => {
+        const updatedStatistics = [...prev, newStatistics];
+
+        localStorage.setItem(
+          "answerStatistics",
+          JSON.stringify(updatedStatistics),
+        );
+        return updatedStatistics;
+      });
     }
 
     setGuess("");
@@ -75,15 +102,86 @@ function App() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="fixed top-0 left-0 z-50 w-full border-b border-white/10 bg-black px-6 py-4">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <h1 className="text-xl font-bold tracking-tight text-white">
             Code<span className="text-gray-500">Guess</span>
           </h1>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 pt-24 pb-10 md:pt-28">
+      <main className="mx-auto max-w-6xl px-6 pt-24 pb-10 md:pt-28">
         {/* Game Layout */}
         <div className="flex flex-col gap-10 md:flex-row">
+          <aside className="-full space-y-5 md:sticky md:top-8 md:w-[260px] md:shrink-0 md:self-start md:pt-[85px]">
+            <div className="rounded-xl border border-white/10 bg-[#101010] p-5">
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold">Leaderboard</h3>
+                <p className="mt-1 text-xs text-gray-600">
+                  Fastest correct answers
+                </p>
+              </div>
+
+              {statistics.length === 0 ? (
+                <div className="py-6 text-center">
+                  <p className="text-xs text-gray-600">
+                    No correct answers yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {statistics
+                    .slice()
+                    .sort((a, b) => a.time - b.time)
+                    .slice(0, 3)
+                    .map((item, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center justify-between rounded-lg px-4 py-3 ${
+                          index === 0
+                            ? "border border-yellow-400/10 bg-yellow-400/5"
+                            : index === 1
+                              ? "border border-white/10 bg-white/[0.03]"
+                              : "border border-white/5 bg-white/[0.02]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5">
+                            <span
+                              className={`text-xs font-semibold ${
+                                index === 0
+                                  ? "text-yellow-400"
+                                  : index === 1
+                                    ? "text-gray-300"
+                                    : "text-gray-500"
+                              }`}
+                            >
+                              {index + 1}
+                            </span>
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="text-[10px] uppercase tracking-wider text-gray-600">
+                              Top {index + 1}
+                            </p>
+
+                            <span
+                              className={`shrink-0 text-sm font-semibold ${
+                                index === 0
+                                  ? "text-yellow-400"
+                                  : index === 1
+                                    ? "text-gray-300"
+                                    : "text-gray-500"
+                              }`}
+                            >
+                              {formatTime(item.time)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </aside>
           {/* Main Challenge */}
           <section className="min-w-0 flex-1">
             {/* Question */}
@@ -160,7 +258,9 @@ function App() {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
                 <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#101010] p-6 shadow-2xl">
                   <div className="mb-5 text-center">
-                    <div className="mb-3 text-3xl text-green-400 font-semibold">{currentQuestion.answer}</div>
+                    <div className="mb-3 text-3xl text-green-400 font-semibold">
+                      {currentQuestion.answer}
+                    </div>
 
                     <h2 className="text-lg font-semibold text-white">
                       Correct answer!
